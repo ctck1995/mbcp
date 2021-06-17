@@ -1,11 +1,7 @@
 package com.github.ctck1995.mbcp.resolver;
 
 import com.github.ctck1995.mbcp.handler.CryptHandlerFactory;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 
-@Getter
-@AllArgsConstructor
 public class SimpleMethodDecryptResolver implements MethodDecryptResolver {
 
     @Override

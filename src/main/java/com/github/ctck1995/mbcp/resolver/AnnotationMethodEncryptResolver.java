@@ -1,15 +1,17 @@
 package com.github.ctck1995.mbcp.resolver;
 
 import com.github.ctck1995.mbcp.handler.CryptHandlerFactory;
-import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Map;
 
-@AllArgsConstructor
 public class AnnotationMethodEncryptResolver implements MethodEncryptResolver {
 
     private List<MethodAnnotationEncryptParameter> methodAnnotationEncryptParameterList;
+
+    public AnnotationMethodEncryptResolver(List<MethodAnnotationEncryptParameter> methodAnnotationEncryptParameterList) {
+        this.methodAnnotationEncryptParameterList = methodAnnotationEncryptParameterList;
+    }
 
     @Override
     @SuppressWarnings("unchecked")
