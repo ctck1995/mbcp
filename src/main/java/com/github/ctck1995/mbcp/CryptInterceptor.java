@@ -21,8 +21,24 @@ public class CryptInterceptor implements Interceptor {
 
     protected static final ConcurrentHashMap<String, MethodCryptMetadata> METHOD_ENCRYPT_MAP = new ConcurrentHashMap<>();
 
+    private boolean enable = true;
+
+    public CryptInterceptor() {
+    }
+
+    public boolean isEnable() {
+        return enable;
+    }
+
+    public void setEnable(boolean enable) {
+        this.enable = enable;
+    }
+
     @Override
     public Object intercept(Invocation invocation) throws Throwable {
+        if (!isEnable()) {
+            return invocation.proceed();
+        }
         Object[] args = invocation.getArgs();
         MethodCryptMetadata methodCryptMetadata = getCachedMethodCryptMetaData((MappedStatement) args[0]);
         // 加密
