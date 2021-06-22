@@ -17,7 +17,7 @@ public class CryptExecutorFactory {
         } else if (MbcpGlobalConfig.getCryptExecutorCls() != null
                 && !NoneCryptExecutor.class.equals(MbcpGlobalConfig.getCryptExecutorCls())) {
             try {
-                cryptExecutor = cryptField.cryptExecutorCls().newInstance();
+                cryptExecutor = MbcpGlobalConfig.getCryptExecutorCls().newInstance();
             } catch (Exception e) {
                 throw new MbCryptException(e);
             }
