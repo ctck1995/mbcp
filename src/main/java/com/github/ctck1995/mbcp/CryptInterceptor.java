@@ -41,11 +41,13 @@ public class CryptInterceptor implements Interceptor {
         }
         Object[] args = invocation.getArgs();
         MethodCryptMetadata methodCryptMetadata = getCachedMethodCryptMetaData((MappedStatement) args[0]);
+        Object parameter = args[1];
         // 加密
-        args[1] = methodCryptMetadata.encrypt(args[1]);
+        methodCryptMetadata.encrypt(parameter);
         // 获得出参
         Object returnValue = invocation.proceed();
         // 解密
+        methodCryptMetadata.decrypt(parameter);
         return methodCryptMetadata.decrypt(returnValue);
     }
 
@@ -58,7 +60,10 @@ public class CryptInterceptor implements Interceptor {
 
     @Override
     public Object plugin(Object target) {
-        return Plugin.wrap(target, this);
+        if (target instanceof Executor) {
+            return Plugin.wrap(target, this);
+        }
+        return target;
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.github.ctck1995.mbcp.handler;
 
 import com.github.ctck1995.mbcp.annotation.CryptField;
 import com.github.ctck1995.mbcp.exception.MbCryptException;
-import com.github.ctck1995.mbcp.util.BeanUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -20,29 +19,22 @@ public class BeanCryptHandler implements CryptHandler<Object> {
         if (bean == null) {
             return null;
         }
-        Object result;
-        try {
-            result = BeanUtils.cloneBean(bean);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new MbCryptException(e.getMessage());
-        }
-        List<CryptFiled> filedList = CLASS_ENCRYPT_MAP.computeIfAbsent(result.getClass(), this::getEncryptFields);
+        List<CryptFiled> filedList = CLASS_ENCRYPT_MAP.computeIfAbsent(bean.getClass(), this::getEncryptFields);
         filedList.forEach(cryptFiled -> {
             try {
                 cryptFiled.field.setAccessible(true);
-                Object obj = cryptFiled.field.get(result);
+                Object obj = cryptFiled.field.get(bean);
                 if (obj != null) {
                     Object encrypted = CryptHandlerFactory.getCryptHandler(obj, cryptFiled.cryptField)
                             .encrypt(obj, cryptFiled.cryptField);
-                    cryptFiled.field.set(result, encrypted);
+                    cryptFiled.field.set(bean, encrypted);
                 }
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
                 throw new MbCryptException(e.getMessage());
             }
         });
-        return result;
+        return bean;
     }
 
     private List<CryptFiled> getEncryptFields(Class cls) {
