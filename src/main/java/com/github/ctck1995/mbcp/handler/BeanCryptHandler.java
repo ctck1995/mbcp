@@ -5,6 +5,7 @@ import com.github.ctck1995.mbcp.exception.MbCryptException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -43,7 +44,7 @@ public class BeanCryptHandler implements CryptHandler<Object> {
             return filedList;
         }
 
-        Field[] objFields = cls.getDeclaredFields();
+        List<Field> objFields = getAllFields(cls);
         for (Field field : objFields) {
             CryptField cryptField = field.getAnnotation(CryptField.class);
             if (cryptField != null && cryptField.encrypt()) {
@@ -59,7 +60,7 @@ public class BeanCryptHandler implements CryptHandler<Object> {
             return filedList;
         }
 
-        Field[] objFields = cls.getDeclaredFields();
+        List<Field> objFields = getAllFields(cls);
         for (Field field : objFields) {
             CryptField cryptField = field.getAnnotation(CryptField.class);
             if (cryptField != null && cryptField.decrypt()) {
@@ -91,6 +92,16 @@ public class BeanCryptHandler implements CryptHandler<Object> {
             }
         });
         return param;
+    }
+
+    private List<Field> getAllFields(Class clazz) {
+        List<Field> fieldList = new ArrayList<>();
+        Class tempClass = clazz;
+        while (tempClass != null) {
+            fieldList.addAll(Arrays.asList(tempClass.getDeclaredFields()));
+            tempClass = tempClass.getSuperclass();
+        }
+        return fieldList;
     }
 
     private class CryptFiled {
