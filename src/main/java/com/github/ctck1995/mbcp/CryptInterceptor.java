@@ -51,11 +51,7 @@ public class CryptInterceptor implements Interceptor {
         Object returnValue = invocation.proceed();
         // 解密
         methodCryptMetadata.decrypt(parameter);
-        if (hitCache) {
-            return returnValue;
-        } else {
-            return methodCryptMetadata.decrypt(returnValue);
-        }
+        return hitCache ? returnValue : methodCryptMetadata.decrypt(returnValue);
     }
 
     private MethodCryptMetadata getCachedMethodCryptMetaData(MappedStatement mappedStatement) {
