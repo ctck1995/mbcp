@@ -2,7 +2,9 @@ package com.github.ctck1995.mbcp;
 
 import com.github.ctck1995.mbcp.resolver.MethodCryptMetadata;
 import com.github.ctck1995.mbcp.resolver.MethodCryptMetadataBuilder;
+import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
+import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.plugin.*;
 import org.apache.ibatis.session.ResultHandler;
@@ -39,6 +41,7 @@ public class CryptInterceptor implements Interceptor {
         if (!isEnable()) {
             return invocation.proceed();
         }
+        boolean hitCache = isHitSessionLevelCache(invocation);
         Object[] args = invocation.getArgs();
         MethodCryptMetadata methodCryptMetadata = getCachedMethodCryptMetaData((MappedStatement) args[0]);
         Object parameter = args[1];
@@ -48,7 +51,11 @@ public class CryptInterceptor implements Interceptor {
         Object returnValue = invocation.proceed();
         // 解密
         methodCryptMetadata.decrypt(parameter);
-        return methodCryptMetadata.decrypt(returnValue);
+        if (hitCache) {
+            return returnValue;
+        } else {
+            return methodCryptMetadata.decrypt(returnValue);
+        }
     }
 
     private MethodCryptMetadata getCachedMethodCryptMetaData(MappedStatement mappedStatement) {
@@ -56,6 +63,20 @@ public class CryptInterceptor implements Interceptor {
                 mappedStatement.getId(),
                 id -> new MethodCryptMetadataBuilder(id).build()
         );
+    }
+
+    private boolean isHitSessionLevelCache(Invocation invocation) {
+        Executor executor = (Executor) invocation.getTarget();
+        Object[] args = invocation.getArgs();
+        MappedStatement ms = (MappedStatement) args[0];
+        Object parameter = args[1];
+        RowBounds rowBounds = RowBounds.DEFAULT;
+        if (args.length > 2) {
+            rowBounds = (RowBounds) args[2];
+        }
+        BoundSql boundSql = ms.getBoundSql(parameter);
+        CacheKey cacheKey = executor.createCacheKey(ms, parameter, rowBounds, boundSql);
+        return executor.isCached(ms, cacheKey);
     }
 
     @Override
