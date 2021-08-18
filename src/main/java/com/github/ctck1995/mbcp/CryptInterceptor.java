@@ -44,6 +44,7 @@ public class CryptInterceptor implements Interceptor {
             return invocation.proceed();
         }
         boolean isQueryMethod = METHOD_QUERY.equals(invocation.getMethod().getName());
+        boolean hitCache = isQueryMethod && isHitSessionLevelCache(invocation);
         Object[] args = invocation.getArgs();
         MethodCryptMetadata methodCryptMetadata = getCachedMethodCryptMetaData((MappedStatement) args[0]);
         Object parameter = args[1];
@@ -53,8 +54,7 @@ public class CryptInterceptor implements Interceptor {
         Object returnValue = invocation.proceed();
         // 解密
         methodCryptMetadata.decrypt(parameter);
-        return !isQueryMethod ? returnValue : (isHitSessionLevelCache(invocation) ?
-                returnValue : methodCryptMetadata.decrypt(returnValue));
+        return !isQueryMethod ? returnValue : (hitCache ? returnValue : methodCryptMetadata.decrypt(returnValue));
     }
 
     private MethodCryptMetadata getCachedMethodCryptMetaData(MappedStatement mappedStatement) {
