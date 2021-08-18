@@ -23,6 +23,8 @@ public class CryptInterceptor implements Interceptor {
 
     protected static final ConcurrentHashMap<String, MethodCryptMetadata> METHOD_ENCRYPT_MAP = new ConcurrentHashMap<>();
 
+    private static final String METHOD_QUERY = "query";
+
     private boolean enable = true;
 
     public CryptInterceptor() {
@@ -41,7 +43,7 @@ public class CryptInterceptor implements Interceptor {
         if (!isEnable()) {
             return invocation.proceed();
         }
-        boolean hitCache = isHitSessionLevelCache(invocation);
+        boolean isQueryMethod = METHOD_QUERY.equals(invocation.getMethod().getName());
         Object[] args = invocation.getArgs();
         MethodCryptMetadata methodCryptMetadata = getCachedMethodCryptMetaData((MappedStatement) args[0]);
         Object parameter = args[1];
@@ -51,7 +53,8 @@ public class CryptInterceptor implements Interceptor {
         Object returnValue = invocation.proceed();
         // 解密
         methodCryptMetadata.decrypt(parameter);
-        return hitCache ? returnValue : methodCryptMetadata.decrypt(returnValue);
+        return !isQueryMethod ? returnValue : (isHitSessionLevelCache(invocation) ?
+                returnValue : methodCryptMetadata.decrypt(returnValue));
     }
 
     private MethodCryptMetadata getCachedMethodCryptMetaData(MappedStatement mappedStatement) {
